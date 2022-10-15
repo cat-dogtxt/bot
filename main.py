@@ -37,6 +37,14 @@ async def main():
         amount INTEGER DEFAULT 0
         )
     ''')
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS tasks(
+        task_id INTEGER PRIMARY KEY NOT NULL,
+        completed_user_id INTEGER DEFAULT O,
+        task TEXT,
+        zorluk INTEGER DEFAULT 0
+        )
+    ''')
     print("database created and online")
     await load()
     await bot.start(DC_TOKEN)

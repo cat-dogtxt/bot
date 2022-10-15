@@ -2,13 +2,18 @@ import discord
 import datetime
 from discord.ext import commands
 #sql
+from discord import *
 import sqlite3
 class User(commands.Cog):
     def __init__(self,bot:commands.Bot):
         self.bot = bot
+        
 
     @commands.command()
     async def kayit(self,ctx):
+        '''
+        Kayıt olmak için kullanılır.
+        '''
         db = sqlite3.connect("db.sqlite3")
         cursor = db.cursor()
         cursor.execute(f"SELECT user_id FROM main WHERE user_id = {ctx.author.id}")
@@ -30,9 +35,51 @@ class User(commands.Cog):
         else:
             await ctx.send(f"Zaten kayıtlısın id:{ctx.author.id}")
         cursor.close()
-        
+    
+
+    @commands.group(describe="Liderlik görüntülemek için kullanılır.")
+    async def leaderboard(self,ctx):
+        '''
+        Liderlik tablosunu görüntülemek için kullanılır.
+        '''
+        if ctx.invoked_subcommand is None:
+            embed = discord.Embed(title="~leaderboard",description="Leaderboard görüntüleme komutları",colour=discord.Colour.random())
+            embed.add_field(name="~leaderboard exp",value="Exp liderliğini görüntülemek için kullanılır.",inline=False)
+            embed.add_field(name="~leaderboard amount",value="Amount liderliğini görüntülemek için kullanılır.",inline=False)
+            await ctx.send(embed=embed)
+    @leaderboard.command()
+    async def exp(self,ctx):    
+        '''
+        Exp liderliğini görüntülemek için kullanılır.
+        '''
+        db = sqlite3.connect("db.sqlite3")
+        cursor = db.cursor()
+        cursor.execute(f"SELECT user_id,exp FROM exp ORDER BY exp DESC LIMIT 10")
+        result = cursor.fetchall()
+        embed = discord.Embed(title="Leaderboard",color=discord.Colour.random())
+        for i in result:
+            embed.add_field(name=f"{self.bot.get_user(i[0])}",value=f"{i[1]} exp",inline=False)
+        embed.set_footer(text=f"{ctx.author.name} tarafından sorgulandı.")
+        await ctx.send(embed=embed) 
+        cursor.close()
+    @leaderboard.command()
+    async def amount(self,ctx):
+        db = sqlite3.connect("db.sqlite3")
+        cursor = db.cursor()
+        cursor.execute(f"SELECT user_id,amount FROM exp ORDER BY amount DESC LIMIT 10")
+        result = cursor.fetchall()
+        embed = discord.Embed(title="Leaderboard",color=discord.Colour.random())
+        for i in result:
+            embed.add_field(name=f"{self.bot.get_user(i[0])}",value=f"{i[1]} amount",inline=False)
+        embed.set_footer(text=f"{ctx.author.name} tarafından sorgulandı.")
+        await ctx.send(embed=embed) 
+        cursor.close()
+    
     @commands.command()
     async def goruntule(self,ctx:commands.Context,member:discord.Member=None):
+        '''
+        Profilinizi görüntülemek için kullanılır.(içerik:exp,amount,level,avatar)
+        '''
         if member == None:
             member = ctx.author
         name = member.display_name
@@ -57,8 +104,12 @@ class User(commands.Cog):
             embed.set_footer(text=f"{name} Made this banner")
             
             await ctx.send(embed=embed)
+
     @commands.command()
     async def daily(self,ctx):
+        '''
+        Günlük ödül almak için kullanılır.
+        '''
         db = sqlite3.connect("db.sqlite3")
         cursor = db.cursor()
         cursor.execute(f"SELECT user_id,takeDate FROM main WHERE user_id = {ctx.author.id}")
