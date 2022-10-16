@@ -227,15 +227,10 @@ class User(commands.Cog):
         if result is None:
             await ctx.send("Kayıt olmadan leetcode hesabı bağlayamazsın")
         else:
-            cursor.close()
-            cursor = db.cursor()
-            print("asdfas")
             cursor.execute(f"SELECT user_id FROM urls WHERE user_id = {ctx.author.id}")
             r = cursor.fetchone()
             
             if r is None:
-                cursor.close()
-                cursor = db.cursor()
                 cursor.execute(f"SELECT user_id FROM urls WHERE leetcode = '{username}'")
                 new_r = cursor.fetchone()
                 if new_r is None:
