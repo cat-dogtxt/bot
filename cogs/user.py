@@ -47,7 +47,7 @@ class User(commands.Cog):
             med = json_data['data']['matchedUser']['submitStats']['acSubmissionNum'][2]['count']
             hard = json_data['data']['matchedUser']['submitStats']['acSubmissionNum'][3]['count']
 
-            context = {'usernameHandle': usernameHandle, 'total': total, 'easy': easy, 'med':med, 'hard': hard}
+            context = {'username': usernameHandle, 'total': total, 'easy': easy, 'med':med, 'hard': hard}
 
             return context    
 
@@ -207,10 +207,11 @@ class User(commands.Cog):
         
         db = sqlite3.connect("db.sqlite3")
         cursor = db.cursor()
-        cursor.execute(f"SELECT user_id,username FROM main WHERE user_id = {ctx.author.id}")
+        cursor.execute(f"SELECT user_id FROM main WHERE user_id = {ctx.author.id}")
         result = cursor.fetchone()
+        print("merhaba")
         if result is None:
-            await ctx.send("Kayıt olmalı sın")
+            await ctx.send("Kayıt olmalısın")
         else:
             x = self.get_leetcode_info(username)
             await ctx.send(x)
@@ -222,17 +223,17 @@ class User(commands.Cog):
         '''
         db = sqlite3.connect("db.sqlite3")
         cursor = db.cursor()
-        cursor.execute(f"SELECT user_id,username FROM main WHERE user_id = {ctx.author.id}")
+        cursor.execute(f"SELECT user_id FROM main WHERE user_id = {ctx.author.id}")
         result = cursor.fetchone()
         if result is None:
             await ctx.send("Kayıt olmadan leetcode hesabı bağlayamazsın")
         else:
-            user_id,username = result
-            sql = (f'''
-                UPDATE main SET username = ? WHERE user_id = ?
-            ''')
-            val = (username,ctx.author.id)
+            sql = (f'INSERT INTO urls(user_id,leetcode_url) VALUES(?,?)')
+            val = (ctx.author.id,username)
+            print("asdf")
+            print(val)
             cursor.execute(sql,val)
+            print("adsfags")
             await ctx.send(f"Leetcode hesabınız {username} olarak ayarlandı")
             db.commit()
             cursor.close()
