@@ -209,7 +209,6 @@ class User(commands.Cog):
         cursor = db.cursor()
         cursor.execute(f"SELECT user_id FROM main WHERE user_id = {ctx.author.id}")
         result = cursor.fetchone()
-        print("merhaba")
         if result is None:
             await ctx.send("Kayıt olmalısın")
         else:
@@ -228,15 +227,30 @@ class User(commands.Cog):
         if result is None:
             await ctx.send("Kayıt olmadan leetcode hesabı bağlayamazsın")
         else:
-            sql = (f'INSERT INTO urls(user_id,leetcode_url) VALUES(?,?)')
-            val = (ctx.author.id,username)
-            print("asdf")
-            print(val)
-            cursor.execute(sql,val)
-            print("adsfags")
-            await ctx.send(f"Leetcode hesabınız {username} olarak ayarlandı")
-            db.commit()
             cursor.close()
+            cursor = db.cursor()
+            print("asdfas")
+            cursor.execute(f"SELECT user_id FROM urls WHERE user_id = {ctx.author.id}")
+            r = cursor.fetchone()
+            
+            if r is None:
+                cursor.close()
+                cursor = db.cursor()
+                cursor.execute(f"SELECT user_id FROM urls WHERE leetcode = '{username}'")
+                new_r = cursor.fetchone()
+                if new_r is None:
+                    sql = (f'INSERT INTO urls(user_id,leetcode) VALUES(?,?)')
+                    val = (ctx.author.id,username)
+                    cursor.execute(sql,val)
+                    await ctx.send(f"Leetcode hesabınız {username} olarak ayarlandı")
+                    db.commit()
+                    cursor.close()
+                else:
+                    await ctx.send("Bu leetcode hesabı başka birisi tarafından kullanılıyor")
+                
+            else:
+                await ctx.send("Leetcode hesabınız zaten var")
+                cursor.close()
         
 
 

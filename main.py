@@ -48,10 +48,9 @@ async def main():
     ''')
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS urls(
-        url_id INTEGER PRIMARY KEY,
-        user_id INTEGER,
-        leetcode_url TEXT DEFAULT NULL,
-        github_url TEXT DEFAULT NULL
+        user_id INTEGER PRIMARY KEY,
+        leetcode TEXT DEFAULT NULL,
+        github TEXT DEFAULT NULL
         )
     ''')
     print("database created and online")
