@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 load_dotenv()
 DC_TOKEN = os.getenv("DC_TOKEN")
 guilded = discord.Object(id=1023737742259146772)
-bot = commands.Bot(command_prefix="~",intents=discord.Intents.all())
+bot = commands.Bot(command_prefix="%",intents=discord.Intents.all())
 
 #LOAD
 async def load():
@@ -40,9 +40,19 @@ async def main():
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS tasks(
         task_id INTEGER PRIMARY KEY NOT NULL,
+        task_encrpted TEXT NOT NULL,
         completed_user_id INTEGER DEFAULT O,
         task TEXT,
         zorluk INTEGER DEFAULT 0
+        )
+    ''')
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS urls(
+        url_id INTEGER PRIMARY KEY NOT NULL,
+        user_id INTEGER,
+        leetcode_url TEXT DEFAULT NULL,
+        github_url TEXT DEFAULT NULL,
+        FOREIGN KEY (user_id) REFERENCES exp(user_id)
         )
     ''')
     print("database created and online")

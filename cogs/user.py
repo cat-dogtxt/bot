@@ -125,13 +125,14 @@ class User(commands.Cog):
                 cursor.execute(f"SELECT exp,amount FROM exp WHERE user_id = {ctx.author.id}")
                 result = cursor.fetchone()
                 exp,amount = result
-                amount += 100
+                reward=100
+                amount += reward
                 sql = (f'''
                     UPDATE exp SET amount = ? WHERE user_id = ?
                 ''')
                 val = (amount,ctx.author.id)
                 cursor.execute(sql,val)
-                await ctx.send(f"Daily alındı exp +{amount}")
+                await ctx.send(f"Daily alındı exp +{reward}")
                 sql1 = (f'''
                     UPDATE main SET takeDate = ? WHERE user_id = ?
                 ''')
