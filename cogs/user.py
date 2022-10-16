@@ -36,23 +36,23 @@ class User(commands.Cog):
             await ctx.send(f"Zaten kayıtlısın id:{ctx.author.id}")
         cursor.close()
     
-
     @commands.group(describe="Liderlik görüntülemek için kullanılır.")
     async def leaderboard(self,ctx):
         '''
         Liderlik tablosunu görüntülemek için kullanılır.
         '''
         if ctx.invoked_subcommand is None:
-            embed = discord.Embed(title="~leaderboard",description="Leaderboard görüntüleme komutları",colour=discord.Colour.random())
+            embed = discord.Embed(title="~leaderboard",description="Leaderboard görüntüleme komutları",colour=discord.Colour.random())  
             embed.add_field(name="~leaderboard exp",value="Exp liderliğini görüntülemek için kullanılır.",inline=False)
             embed.add_field(name="~leaderboard amount",value="Amount liderliğini görüntülemek için kullanılır.",inline=False)
             await ctx.send(embed=embed)
+
     @leaderboard.command()
     async def exp(self,ctx):    
         '''
         Exp liderliğini görüntülemek için kullanılır.
         '''
-        db = sqlite3.connect("db.sqlite3")
+        db = sqlite3.connect("db.sqlite3") 
         cursor = db.cursor()
         cursor.execute(f"SELECT user_id,exp FROM exp ORDER BY exp DESC LIMIT 10")
         result = cursor.fetchall()
@@ -91,10 +91,10 @@ class User(commands.Cog):
         result = cursor.fetchone()
         print(result)
         print(member.id)
-        exp,level,amount = result
         if result is None:
-            await ctx.send("Böyle bir kullanıcı yok")
+            await ctx.send(f"{member.mention} kayıtlı değil!")
         else:
+            exp,level,amount = result
             embed = discord.Embed(title="Üye bilgi", description="Üye",colour=discord.Colour.random())
             #embed.set_image(url=pfp)
             embed.set_author(name=f"{name}",icon_url=pfp)
