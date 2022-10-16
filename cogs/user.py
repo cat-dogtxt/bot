@@ -1,13 +1,55 @@
+import json
 import discord
 import datetime
 from discord.ext import commands
 #sql
 from discord import *
 import sqlite3
+
+import requests
 class User(commands.Cog):
     def __init__(self,bot:commands.Bot):
         self.bot = bot
-        
+    def get_leetcode_info(self,username):
+            '''
+            Leetcode'da çözdüğünüz soruları çeker.
+            '''
+
+            query = '''
+            query getUserProfile($username: String!) {
+                allQuestionsCount {
+                difficulty
+                count
+                }
+                matchedUser(username: $username) {
+                username
+                submitStats {
+                    acSubmissionNum {
+                    difficulty
+                    count
+                    submissions
+                    }
+                }
+                }
+            }
+            '''
+            username = username
+            variables = {'username': username}
+
+            url = 'https://leetcode.com/graphql/'
+            r = requests.post(url, json={'query': query, 'variables': variables})
+            json_data = json.loads(r.text)
+            #print(json.dumps(json_data, indent=4))
+            
+            usernameHandle = json_data['data']['matchedUser']['username']
+            total = json_data['data']['matchedUser']['submitStats']['acSubmissionNum'][0]['count']
+            easy = json_data['data']['matchedUser']['submitStats']['acSubmissionNum'][1]['count']
+            med = json_data['data']['matchedUser']['submitStats']['acSubmissionNum'][2]['count']
+            hard = json_data['data']['matchedUser']['submitStats']['acSubmissionNum'][3]['count']
+
+            context = {'usernameHandle': usernameHandle, 'total': total, 'easy': easy, 'med':med, 'hard': hard}
+
+            return context    
 
     @commands.command()
     async def kayit(self,ctx):
@@ -142,6 +184,59 @@ class User(commands.Cog):
             else:
                 await ctx.send(f"Daily alamazsın {takeDate}")
         cursor.close()
+    
+    
+        
+    @commands.group(describe="Leetcode komutları")
+    async def leetcode(self,ctx):
+        '''
+        Leetcode tablosunu görüntülemek için kullanılır.
+        '''
+        if ctx.invoked_subcommand is None:
+            embed = discord.Embed(title="~leetcode",description="Leaderboard görüntüleme komutları",colour=discord.Colour.random())
+            embed.add_field(name="~leetcode sign -nickname-",value="Leetcode hesabınızı bağlar.",inline=False)
+            embed.add_field(name="~leetcode change -nickname-",value="Leetcode hesabınızı değiştirmek için kullanılır.",inline=False)
+            embed.add_field(name="~leetcode update",value="Leetcode'da çözdüğünüz sorulardan exp kazanmak için kullanılır",inline=False)
+            await ctx.send(embed=embed)
+
+    @leetcode.command()
+    async def update(self,ctx,username:str):
+        '''
+        Leetcode'da çözdüğünüz sorulardan discordta exp kazanmak için kullanılır.
+        '''
+        
+        db = sqlite3.connect("db.sqlite3")
+        cursor = db.cursor()
+        cursor.execute(f"SELECT user_id,username FROM main WHERE user_id = {ctx.author.id}")
+        result = cursor.fetchone()
+        if result is None:
+            await ctx.send("Kayıt olmalı sın")
+        else:
+            x = self.get_leetcode_info(username)
+            await ctx.send(x)
+            cursor.close()
+    @leetcode.command()
+    async def sign(self,ctx,username:str):
+        '''
+        Leetcode hesabınızı bağlamak için kullanılır.
+        '''
+        db = sqlite3.connect("db.sqlite3")
+        cursor = db.cursor()
+        cursor.execute(f"SELECT user_id,username FROM main WHERE user_id = {ctx.author.id}")
+        result = cursor.fetchone()
+        if result is None:
+            await ctx.send("Kayıt olmadan leetcode hesabı bağlayamazsın")
+        else:
+            user_id,username = result
+            sql = (f'''
+                UPDATE main SET username = ? WHERE user_id = ?
+            ''')
+            val = (username,ctx.author.id)
+            cursor.execute(sql,val)
+            await ctx.send(f"Leetcode hesabınız {username} olarak ayarlandı")
+            db.commit()
+            cursor.close()
+        
 
 
 
