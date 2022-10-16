@@ -244,7 +244,7 @@ class User(commands.Cog):
                     await ctx.send("Bu leetcode hesabı başka birisi tarafından kullanılıyor")
                 
             else:
-                await ctx.send("Leetcode hesabınız zaten var")
+                await ctx.send("Leetcode hesabınız zaten var, değiştirmek için ~leetcode change komutunu kullanın")
                 cursor.close()
         
 
