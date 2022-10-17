@@ -38,31 +38,30 @@ class User(commands.Cog):
 
             url = 'https://leetcode.com/graphql/'
             r = requests.post(url, json={'query': query, 'variables': variables})
-            json_data = json.loads(r.text)
-            #print(json.dumps(json_data, indent=4))
-            
-            usernameHandle = json_data['data']['matchedUser']['username']
-            total = json_data['data']['matchedUser']['submitStats']['acSubmissionNum'][0]['count']
-            easy = json_data['data']['matchedUser']['submitStats']['acSubmissionNum'][1]['count']
-            med = json_data['data']['matchedUser']['submitStats']['acSubmissionNum'][2]['count']
-            hard = json_data['data']['matchedUser']['submitStats']['acSubmissionNum'][3]['count']
-
-            context = {'username': usernameHandle, 'total': total, 'easy': easy, 'med':med, 'hard': hard}
-
-            return context    
-    def load_exp(self,user_id,username):
-        db = sqlite3.connect('db.sqlite3')
-        cursor = db.cursor()
-        cursor.execute(f"SELECT * FROM exp WHERE user_id = {user_id}")
+            if "errors" in json.loads(r.text):
+                return None
+            else:
+                json_data = json.loads(r.text)
+                #print(json.dumps(json_data, indent=4))
+                
+                usernameHandle = json_data['data']['matchedUser']['username']
+                total = json_data['data']['matchedUser']['submitStats']['acSubmissionNum'][0]['count']
+                easy = json_data['data']['matchedUser']['submitStats']['acSubmissionNum'][1]['count']
+                med = json_data['data']['matchedUser']['submitStats']['acSubmissionNum'][2]['count']
+                hard = json_data['data']['matchedUser']['submitStats']['acSubmissionNum'][3]['count']
+                
+                context = {'username': usernameHandle, 'total': total, 'easy': easy, 'med':med, 'hard': hard}                
+                return context    
+    def load_exp(self,username):
+        #cursor.execute(f"SELECT * FROM exp WHERE user_id = {user_id}")
         leetcode_info = self.get_leetcode_info(username)
-        total_point = leetcode_info['easy']*20 + leetcode_info['med']*50 + leetcode_info['hard']*500
-        print(total_point)
-        sql = (f'''
-            UPDATE exp SET leetcode_exp = {total_point} WHERE user_id = {user_id}
-        ''')
-        cursor.execute(sql)
-        db.commit()
-        db.close()
+        if leetcode_info is None:
+            leetcode_exp = 1
+            return leetcode_exp
+        else:
+            total_point = leetcode_info['easy']*20 + leetcode_info['med']*50 + leetcode_info['hard']*500
+            return total_point
+            
     @commands.command()
     async def kayit(self,ctx):
         '''
@@ -227,16 +226,30 @@ class User(commands.Cog):
         cursor = db.cursor()
         cursor.execute(f"SELECT user_id,leetcode FROM urls WHERE user_id = {ctx.author.id}")
         result = cursor.fetchone()
-        print(result)
         if result is None:
             await ctx.send("Kayıt olmalısın")
         else:
             if result[1] is None:
                 await ctx.send("Leetcode hesabını bağlamalısın -> ~leetcode sign -nickname-")
             else:
-                self.load_exp(result[0],result[1])
-                await ctx.send("exp yüklendi")
-                cursor.close()
+                print(result[0],result[1])
+                exps = self.load_exp(result[1])
+                print(exps,"asdfsaf")
+                if exps != 1:
+                    sql = (f'''
+                            UPDATE exp SET leetcode_exp = {exps} WHERE user_id = {ctx.author.id}
+                        ''')
+                    cursor.execute(sql)
+                    db.commit()
+                    await ctx.send("exp yüklendi")
+                else:
+                    sql = (f'''
+                            UPDATE exp SET leetcode_exp = 0 WHERE user_id = {ctx.author.id}
+                        ''')
+                    cursor.execute(sql)
+                    db.commit()
+                    await ctx.send("Yanlış kullanıcı adı")
+        db.close()
     @leetcode.command()
     async def sign(self,ctx,username:str):
         '''
@@ -251,25 +264,27 @@ class User(commands.Cog):
         else:
             cursor.execute(f"SELECT leetcode FROM urls WHERE user_id = {ctx.author.id}")
             r = cursor.fetchone()
-            
-            if r is None:
+            print(r[0])
+            if r[0] is None:
                 cursor.execute(f"SELECT user_id FROM urls WHERE leetcode = '{username}'")
                 new_r = cursor.fetchone()
                 if new_r is None:
                     sql = (f'UPDATE urls SET leetcode = "{username}" WHERE user_id = {ctx.author.id}')
                     cursor.execute(sql)
                     await ctx.send(f"Leetcode hesabınız {username} olarak ayarlandı")#Exp yüklenecek ve embed gönderilecek
-                    self.load_exp(ctx.author.id,username)
-                    await ctx.send(f"exp yüklendi")
                     db.commit()
-                    cursor.close()
+                    exps = self.load_exp(username)
+                    sql = (f'''
+                        UPDATE exp SET leetcode_exp = {exps} WHERE user_id = {ctx.author.id};
+                    ''')
+                    cursor.execute(sql)
+                    db.commit()
                 else:
                     await ctx.send("Bu leetcode hesabı başka birisi tarafından kullanılıyor")
                 
             else:
                 await ctx.send("Leetcode hesabınız zaten var, değiştirmek için ~leetcode change komutunu kullanın")
-                cursor.close()
-    
+        cursor.close()
     @leetcode.command()
     async def change(self,ctx,username:str):
         '''
@@ -300,17 +315,17 @@ class User(commands.Cog):
                     cursor.close()
                 else:
                     await ctx.send(f"Bu leetcode hesabı başka birisi tarafından kullanılıyor. Kullanan kişi {self.bot.get_user(new_r[0]).mention} ")
-    @commands.group()
-    async def github(self,ctx):
-        '''
-        Github tablosunu görüntülemek için kullanılır.
-        '''
-        if ctx.invoked_subcommand is None:
-            embed = discord.Embed(title="~github",description="Github tablosu görüntüleme komutları",colour=discord.Colour.random())
-            embed.add_field(name="~github sign -username-",value="Github hesabınızı bağlar.",inline=False)
-            embed.add_field(name="~github change -username-",value="Github hesabınızı değiştirmek için kullanılır.",inline=False)
-            embed.add_field(name="~github update",value="Github'da yaptığınız commitlerden exp kazanmak için kullanılır",inline=False)
-            await ctx.send(embed=embed)
+    # @commands.group()
+    # async def github(self,ctx):
+    #     '''
+    #     Github tablosunu görüntülemek için kullanılır.
+    #     '''
+    #     if ctx.invoked_subcommand is None:
+    #         embed = discord.Embed(title="~github",description="Github tablosu görüntüleme komutları",colour=discord.Colour.random())
+    #         embed.add_field(name="~github sign -username-",value="Github hesabınızı bağlar.",inline=False)
+    #         embed.add_field(name="~github change -username-",value="Github hesabınızı değiştirmek için kullanılır.",inline=False)
+    #         embed.add_field(name="~github update",value="Github'da yaptığınız commitlerden exp kazanmak için kullanılır",inline=False)
+    #         await ctx.send(embed=embed)
     
     # @github.command()
     # async def sign(self,ctx,username:str):
