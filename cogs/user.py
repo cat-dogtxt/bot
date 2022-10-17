@@ -50,7 +50,19 @@ class User(commands.Cog):
             context = {'username': usernameHandle, 'total': total, 'easy': easy, 'med':med, 'hard': hard}
 
             return context    
-
+    def load_exp(self,user_id,username):
+        db = sqlite3.connect('db.sqlite3')
+        cursor = db.cursor()
+        cursor.execute(f"SELECT * FROM exp WHERE user_id = {user_id}")
+        leetcode_info = self.get_leetcode_info(username)
+        total_point = leetcode_info['easy']*20 + leetcode_info['med']*50 + leetcode_info['hard']*500
+        print(total_point)
+        sql = (f'''
+            UPDATE exp SET leetcode_exp = {total_point} WHERE user_id = {user_id}
+        ''')
+        cursor.execute(sql)
+        db.commit()
+        db.close()
     @commands.command()
     async def kayit(self,ctx):
         '''
@@ -72,7 +84,13 @@ class User(commands.Cog):
             ''')
             val = (ctx.author.id,100,0,100)
             cursor.execute(sql1,val)
+            
             await ctx.send(f"Expler yüklendi.{ctx.author.id}")
+            sql2 = (f'''
+                INSERT INTO urls(user_id) VALUES({ctx.author.id})
+            ''')
+            cursor.execute(sql2)
+            await ctx.send(f"Urlleri girmen gerekiyor")
             db.commit()
         else:
             await ctx.send(f"Zaten kayıtlısın id:{ctx.author.id}")
@@ -129,18 +147,18 @@ class User(commands.Cog):
         
         db = sqlite3.connect("db.sqlite3")
         cursor = db.cursor()
-        cursor.execute(f"SELECT exp,level,amount FROM exp WHERE user_id = {member.id}")
+        cursor.execute(f"SELECT exp,level,amount,leetcode_exp FROM exp WHERE user_id = {member.id}")
         result = cursor.fetchone()
         print(result)
         print(member.id)
         if result is None:
             await ctx.send(f"{member.mention} kayıtlı değil!")
         else:
-            exp,level,amount = result
+            exp,level,amount,l_exp = result
             embed = discord.Embed(title="Üye bilgi", description="Üye",colour=discord.Colour.random())
             #embed.set_image(url=pfp)
             embed.set_author(name=f"{name}",icon_url=pfp)
-            embed.add_field(name="Exp",value=f"{exp}")
+            embed.add_field(name="Exp",value=f"{exp+l_exp}")
             embed.add_field(name="Level",value=f"{level}",inline=True)
             embed.add_field(name="Amount",value=f"{amount}",inline=False)
             embed.set_footer(text=f"{name} Made this banner")
@@ -200,21 +218,25 @@ class User(commands.Cog):
             await ctx.send(embed=embed)
 
     @leetcode.command()
-    async def update(self,ctx,username:str):
+    async def update(self,ctx):
         '''
         Leetcode'da çözdüğünüz sorulardan discordta exp kazanmak için kullanılır.
         '''
         
         db = sqlite3.connect("db.sqlite3")
         cursor = db.cursor()
-        cursor.execute(f"SELECT user_id FROM main WHERE user_id = {ctx.author.id}")
+        cursor.execute(f"SELECT user_id,leetcode FROM urls WHERE user_id = {ctx.author.id}")
         result = cursor.fetchone()
+        print(result)
         if result is None:
             await ctx.send("Kayıt olmalısın")
         else:
-            x = self.get_leetcode_info(username)
-            await ctx.send(x)
-            cursor.close()
+            if result[1] is None:
+                await ctx.send("Leetcode hesabını bağlamalısın -> ~leetcode sign -nickname-")
+            else:
+                self.load_exp(result[0],result[1])
+                await ctx.send("exp yüklendi")
+                cursor.close()
     @leetcode.command()
     async def sign(self,ctx,username:str):
         '''
@@ -227,17 +249,18 @@ class User(commands.Cog):
         if result is None:
             await ctx.send("Kayıt olmadan leetcode hesabı bağlayamazsın")
         else:
-            cursor.execute(f"SELECT user_id FROM urls WHERE user_id = {ctx.author.id}")
+            cursor.execute(f"SELECT leetcode FROM urls WHERE user_id = {ctx.author.id}")
             r = cursor.fetchone()
             
             if r is None:
                 cursor.execute(f"SELECT user_id FROM urls WHERE leetcode = '{username}'")
                 new_r = cursor.fetchone()
                 if new_r is None:
-                    sql = (f'INSERT INTO urls(user_id,leetcode) VALUES(?,?)')
-                    val = (ctx.author.id,username)
-                    cursor.execute(sql,val)
-                    await ctx.send(f"Leetcode hesabınız {username} olarak ayarlandı")
+                    sql = (f'UPDATE urls SET leetcode = "{username}" WHERE user_id = {ctx.author.id}')
+                    cursor.execute(sql)
+                    await ctx.send(f"Leetcode hesabınız {username} olarak ayarlandı")#Exp yüklenecek ve embed gönderilecek
+                    self.load_exp(ctx.author.id,username)
+                    await ctx.send(f"exp yüklendi")
                     db.commit()
                     cursor.close()
                 else:
@@ -246,8 +269,80 @@ class User(commands.Cog):
             else:
                 await ctx.send("Leetcode hesabınız zaten var, değiştirmek için ~leetcode change komutunu kullanın")
                 cursor.close()
-        
-
+    
+    @leetcode.command()
+    async def change(self,ctx,username:str):
+        '''
+        Leetcode hesabınızı değiştirmek için kullanılır.
+        '''
+        db = sqlite3.connect("db.sqlite3")
+        cursor = db.cursor()
+        cursor.execute(f"SELECT user_id FROM main WHERE user_id = {ctx.author.id}")
+        result = cursor.fetchone()
+        if result is None:
+            await ctx.send("Kayıt olmadan leetcode hesabı bağlayamazsın")
+        else:
+            cursor.execute(f"SELECT user_id FROM urls WHERE user_id = {ctx.author.id}")
+            r = cursor.fetchone()
+            if r is None:
+                await ctx.send("Leetcode hesabınız yok, bağlamak için ~leetcode sign komutunu kullanın")
+            else:
+                cursor.execute(f"SELECT user_id FROM urls WHERE leetcode = '{username}'")
+                new_r = cursor.fetchone()
+                if new_r is None:
+                    sql = (f'''
+                        UPDATE urls SET leetcode = ? WHERE user_id = ?
+                    ''')
+                    val = (username,ctx.author.id)
+                    cursor.execute(sql,val)
+                    await ctx.send(f"Leetcode hesabınız {username} olarak değiştirildi")
+                    db.commit()
+                    cursor.close()
+                else:
+                    await ctx.send(f"Bu leetcode hesabı başka birisi tarafından kullanılıyor. Kullanan kişi {self.bot.get_user(new_r[0]).mention} ")
+    @commands.group()
+    async def github(self,ctx):
+        '''
+        Github tablosunu görüntülemek için kullanılır.
+        '''
+        if ctx.invoked_subcommand is None:
+            embed = discord.Embed(title="~github",description="Github tablosu görüntüleme komutları",colour=discord.Colour.random())
+            embed.add_field(name="~github sign -username-",value="Github hesabınızı bağlar.",inline=False)
+            embed.add_field(name="~github change -username-",value="Github hesabınızı değiştirmek için kullanılır.",inline=False)
+            embed.add_field(name="~github update",value="Github'da yaptığınız commitlerden exp kazanmak için kullanılır",inline=False)
+            await ctx.send(embed=embed)
+    
+    # @github.command()
+    # async def sign(self,ctx,username:str):
+    #     '''
+    #         Github hesabınızı bağlamak için kullanılır.
+    #     '''
+    #     db = sqlite3.connect("db.sqlite3")
+    #     cursor = db.cursor()
+    #     cursor.execute(f"SELECT user_id FROM main WHERE user_id = {ctx.author.id}")
+    #     result = cursor.fetchone()
+    #     if result is None:
+    #         await ctx.send("Kayıt olmadan leetcode hesabı bağlayamazsın")
+    #     else:
+    #         cursor.execute(f"SELECT user_id FROM urls WHERE user_id = {ctx.author.id}")
+    #         r = cursor.fetchone()
+            
+    #         if r is None:
+    #             cursor.execute(f"SELECT user_id FROM urls WHERE leetcode = '{username}'")
+    #             new_r = cursor.fetchone()
+    #             if new_r is None:
+    #                 sql = (f'INSERT INTO urls(user_id,github) VALUES(?,?)')
+    #                 val = (ctx.author.id,username)
+    #                 cursor.execute(sql,val)
+    #                 await ctx.send(f"Github hesabınız {username} olarak ayarlandı")#Exp yüklenecek ve embed gönderilecek
+    #                 db.commit()
+    #                 cursor.close()
+    #             else:
+    #                 await ctx.send(f"Bu github hesabı başka birisi tarafından kullanılıyor {self.bot.get_user(new_r[0]).mention}")
+                
+    #         else:
+    #             await ctx.send("Github hesabınız zaten var, değiştirmek için ~github change komutunu kullanın")
+    #             cursor.close()
 
 
 async def setup(bot):

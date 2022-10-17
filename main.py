@@ -1,4 +1,3 @@
-from this import d
 import discord
 from discord.ext import commands
 from discord import app_commands
@@ -33,6 +32,7 @@ async def main():
         CREATE TABLE IF NOT EXISTS exp(
         user_id INTEGER PRIMARY KEY,
         exp INTEGER DEFAULT 0,
+        leetcode_exp INTEGER DEFAULT 0,
         level INTEGER DEFAULT 0,
         amount INTEGER DEFAULT 0
         )
@@ -57,5 +57,5 @@ async def main():
     await load()
     await bot.start(DC_TOKEN)
 
-asyncio.run(main())
+asyncio.run(main(),debug=True)
 #############################################################################################
