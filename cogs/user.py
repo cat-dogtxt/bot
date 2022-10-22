@@ -135,10 +135,11 @@ class User(commands.Cog):
         name = member.display_name
         pfp = member.display_avatar
         result = self.db.get_user_info(member.id)
+        print(result)
         if result is None:
             await ctx.send(f"{member.mention} kayıtlı değil!")
         else:
-            user_id,exp,level,amount,leetcode_exp = result
+            user_id,exp,level,leetcode_exp,amount = result
             embed = discord.Embed(title="Üye bilgi", description="Üye",colour=discord.Colour.random())
             #embed.set_image(url=pfp)
             embed.set_author(name=f"{name}",icon_url=pfp)
@@ -227,13 +228,11 @@ class User(commands.Cog):
         if result is None:
             await ctx.send("Kayıt olmadan leetcode hesabı bağlayamazsın")
         else:
-            cursor.execute(f"SELECT leetcode FROM urls WHERE user_id = {ctx.author.id}")
-            r = cursor.fetchone()
-            print(r[0])
-            if r[0] is None:
-                cursor.execute(f"SELECT user_id FROM urls WHERE leetcode = '{username}'")
-                new_r = cursor.fetchone()
-                if new_r is None:
+            r = self.db.get_url(ctx.author.id)
+            print(r)
+            if r[1] is None:
+                cursor.execute(f"select user_id")
+                if r[1] is None:
                     sql = (f'UPDATE urls SET leetcode = "{username}" WHERE user_id = {ctx.author.id}')
                     cursor.execute(sql)
                     await ctx.send(f"Leetcode hesabınız {username} olarak ayarlandı")#Exp yüklenecek ve embed gönderilecek

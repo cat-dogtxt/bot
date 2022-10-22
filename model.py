@@ -84,3 +84,16 @@ class Models:
         self.cursor.execute('''
             UPDATE main SET takeDate = ? WHERE user_id = ?''',((datetime.datetime.now() + datetime.timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S'),user_id))
         self.db.commit()
+    def get_url(self,user_id):
+        self.cursor.execute('''
+            SELECT * FROM urls WHERE user_id=?''',(user_id,))
+        return self.cursor.fetchone()
+    
+    def set_url_leetcode(self,user_id,leetcode):
+        self.cursor.execute('''
+            UPDATE urls SET  leetcode = ? WHERE user_id = ?''',(leetcode,user_id))
+        self.db.commit()
+    def set_exp(self,user_id,exp):
+        self.cursor.execute('''
+            UPDATE exp SET exp = ? WHERE user_id = ?''',(exp,user_id))
+        self.db.commit()
