@@ -139,7 +139,7 @@ class User(commands.Cog):
         if result is None:
             await ctx.send(f"{member.mention} kayıtlı değil!")
         else:
-            user_id,exp,level,leetcode_exp,amount = result
+            user_id,exp,leetcode_exp,level,amount = result
             embed = discord.Embed(title="Üye bilgi", description="Üye",colour=discord.Colour.random())
             #embed.set_image(url=pfp)
             embed.set_author(name=f"{name}",icon_url=pfp)
@@ -182,17 +182,14 @@ class User(commands.Cog):
             embed.add_field(name="~leetcode update",value="Leetcode'da çözdüğünüz sorulardan exp kazanmak için kullanılır",inline=False)
             await ctx.send(embed=embed)
 
+    
     @leetcode.command()
     async def update(self,ctx):
         '''
         Leetcode'da çözdüğünüz sorulardan discordta exp kazanmak için kullanılır.
         '''
-        
-        db = sqlite3.connect("db.sqlite3")
-        cursor = db.cursor()
-        cursor.execute(f"SELECT user_id,leetcode FROM urls WHERE user_id = {ctx.author.id}")
-        result = cursor.fetchone()
-        if result is None:
+        result= self.db.get_url(ctx.author.id)
+        if result[0] is None:
             await ctx.send("Kayıt olmalısın")
         else:
             if result[1] is None:
@@ -202,20 +199,15 @@ class User(commands.Cog):
                 exps = self.load_exp(result[1])
                 print(exps,"asdfsaf")
                 if exps != 1:
-                    sql = (f'''
-                            UPDATE exp SET leetcode_exp = {exps} WHERE user_id = {ctx.author.id}
-                        ''')
-                    cursor.execute(sql)
-                    db.commit()
+                    print("sss")
+                    self.db.set_leetcode_exp(ctx.author.id,exps)
                     await ctx.send("exp yüklendi")
                 else:
-                    sql = (f'''
-                            UPDATE exp SET leetcode_exp = 0 WHERE user_id = {ctx.author.id}
-                        ''')
-                    cursor.execute(sql)
-                    db.commit()
+                    print("s")
+                    exps=0
+                    self.db.set_leetcode_exp(ctx.author.id,exps)
                     await ctx.send("Yanlış kullanıcı adı")
-        db.close()
+    
     @leetcode.command()
     async def sign(self,ctx,username:str):
         '''
@@ -234,7 +226,7 @@ class User(commands.Cog):
             if r[1] is None:
                 res = self.db.get_leet_user(username)
                 print(res)
-                if res[0] is None:
+                if res is None:
                     # sql = (f'UPDATE urls SET leetcode = "{username}" WHERE user_id = {ctx.author.id}')
                     # cursor.execute(sql)
                     self.db.set_url_leetcode(ctx.author.id,username)
@@ -261,8 +253,7 @@ class User(commands.Cog):
         '''
         db = sqlite3.connect("db.sqlite3")
         cursor = db.cursor()
-        cursor.execute(f"SELECT user_id FROM main WHERE user_id = {ctx.author.id}")
-        result = cursor.fetchone()
+        result = self.db.get_user(ctx.author.id)
         if result is None:
             await ctx.send("Kayıt olmadan leetcode hesabı bağlayamazsın")
         else:
@@ -274,11 +265,7 @@ class User(commands.Cog):
                 cursor.execute(f"SELECT user_id FROM urls WHERE leetcode = '{username}'")
                 new_r = cursor.fetchone()
                 if new_r is None:
-                    sql = (f'''
-                        UPDATE urls SET leetcode = ? WHERE user_id = ?
-                    ''')
-                    val = (username,ctx.author.id)
-                    cursor.execute(sql,val)
+                    self.db.set_url_leetcode(ctx.author.id,username)
                     await ctx.send(f"Leetcode hesabınız {username} olarak değiştirildi")
                     db.commit()
                     cursor.close()

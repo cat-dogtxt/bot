@@ -104,3 +104,7 @@ class Models:
             SELECT user_id FROM urls WHERE leetcode='{username}'
             ''')
         return self.cursor.fetchone()
+    def set_leetcode_exp(self,user_id,exp):
+        self.cursor.execute(f'''
+            UPDATE exp SET leetcode_exp = ? WHERE user_id = ?''',(exp,user_id))
+        self.db.commit()
