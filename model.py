@@ -1,5 +1,7 @@
 import sqlite3 
 import sys
+import datetime
+
 sys.path.insert(0,".")
 class Models:
     def __init__(self):
@@ -66,12 +68,19 @@ class Models:
             SELECT * FROM main WHERE user_id=?''',(user_id,))
         return self.cursor.fetchone()
 
+    def get_amount(self,user_id):
+        self.cursor.execute('''
+            SELECT amount FROM exp WHERE user_id=?''',(user_id,))
+        return self.cursor.fetchone()
 
     def get_user_info(self,user_id):
         self.cursor.execute('''
             SELECT * FROM exp WHERE user_id=?''',(user_id,))
         return self.cursor.fetchone()
-    def get_exp(self,user_id):
+
+    def set_daily(self,user_id,amount):
         self.cursor.execute('''
-            SELECT * FROM exp WHERE user_id=?''',(user_id,))
-        return self.cursor.fetchone()
+            UPDATE exp SET amount = ? WHERE user_id = ?''',(amount,user_id))
+        self.cursor.execute('''
+            UPDATE main SET takeDate = ? WHERE user_id = ?''',((datetime.datetime.now() + datetime.timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S'),user_id))
+        self.db.commit()

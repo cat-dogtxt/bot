@@ -158,41 +158,21 @@ class User(commands.Cog):
         '''
         Günlük ödül almak için kullanılır.
         '''
-        db = sqlite3.connect("db.sqlite3")
-        cursor = db.cursor()
-        cursor.execute(f"SELECT user_id,takeDate FROM main WHERE user_id = {ctx.author.id}")
-        result = cursor.fetchone()
+        result = self.db.get_user(ctx.author.id)
         if result is None:
             await ctx.send("Kayıt olmadan daily alamazsın")
         else:
-            user_id,takeDate = result
-            print(result)
-            print(takeDate)
-            print(datetime.datetime.now())
-            if datetime.datetime.strptime(takeDate,'%Y-%m-%d %H:%M:%S.%f') < datetime.datetime.now():
-                cursor.execute(f"SELECT exp,amount FROM exp WHERE user_id = {ctx.author.id}")
-                result = cursor.fetchone()
-                exp,amount = result
+            user_id,signDate,takeDate = result
+            if takeDate < datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'):
+                result = self.db.get_amount(ctx.author.id)
+                amount = result[0]
                 reward=100
                 amount += reward
-                sql = (f'''
-                    UPDATE exp SET amount = ? WHERE user_id = ?
-                ''')
-                val = (amount,ctx.author.id)
-                cursor.execute(sql,val)
+                self.db.set_daily(ctx.author.id,amount)
                 await ctx.send(f"Daily alındı exp +{reward}")
-                sql1 = (f'''
-                    UPDATE main SET takeDate = ? WHERE user_id = ?
-                ''')
-                val = (datetime.datetime.now() + datetime.timedelta(days=1),ctx.author.id)
-                cursor.execute(sql1,val)
-                db.commit()
             else:
                 await ctx.send(f"Daily alamazsın {takeDate}")
-        cursor.close()
-    
-    
-        
+
     @commands.group(describe="Leetcode komutları")
     async def leetcode(self,ctx):
         '''
