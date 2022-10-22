@@ -143,9 +143,10 @@ class User(commands.Cog):
             embed = discord.Embed(title="Üye bilgi", description="Üye",colour=discord.Colour.random())
             #embed.set_image(url=pfp)
             embed.set_author(name=f"{name}",icon_url=pfp)
-            embed.add_field(name="Exp",value=f"{exp+leetcode_exp}")
+            embed.add_field(name="Total exp",value=f"{exp+leetcode_exp}",inline=True)
+            embed.add_field(name="leetcode exp",value=f"{leetcode_exp}",inline=True)
+            embed.add_field(name="Amount",value=f"{amount}",inline=False)
             embed.add_field(name="Level",value=f"{level}",inline=True)
-            embed.add_field(name="Amount",value=f"{amount}",inline=True)
             embed.set_footer(icon_url=ctx.author.display_avatar,text=f"{ctx.author.name} Made this banner")
             
             await ctx.send(embed=embed)
@@ -197,13 +198,11 @@ class User(commands.Cog):
             else:
                 print(result[0],result[1])
                 exps = self.load_exp(result[1])
-                print(exps,"asdfsaf")
+                print(exps)
                 if exps != 1:
-                    print("sss")
                     self.db.set_leetcode_exp(ctx.author.id,exps)
                     await ctx.send("exp yüklendi")
                 else:
-                    print("s")
                     exps=0
                     self.db.set_leetcode_exp(ctx.author.id,exps)
                     await ctx.send("Yanlış kullanıcı adı")
@@ -213,10 +212,6 @@ class User(commands.Cog):
         '''
         Leetcode hesabınızı bağlamak için kullanılır.
         '''
-        # db = sqlite3.connect("db.sqlite3")
-        # cursor = db.cursor()
-        # cursor.execute(f"SELECT user_id FROM main WHERE user_id = {ctx.author.id}")
-        # result = cursor.fetchone()
         result = self.db.get_user(ctx.author.id)
         if result is None:
             await ctx.send("Kayıt olmadan leetcode hesabı bağlayamazsın")
@@ -227,17 +222,9 @@ class User(commands.Cog):
                 res = self.db.get_leet_user(username)
                 print(res)
                 if res is None:
-                    # sql = (f'UPDATE urls SET leetcode = "{username}" WHERE user_id = {ctx.author.id}')
-                    # cursor.execute(sql)
                     self.db.set_url_leetcode(ctx.author.id,username)
                     await ctx.send(f"Leetcode hesabınız {username} olarak ayarlandı")#Exp yüklenecek ve embed gönderilecek
-                    # db.commit()
                     exps = self.load_exp(username)
-                    # sql = (f'''
-                    #     UPDATE exp SET leetcode_exp = {exps} WHERE user_id = {ctx.author.id};
-                    # ''')
-                    # cursor.execute(sql)
-                    # db.commit()
                     self.db.set_exp(ctx.author.id,exps,"leetcode_exp")
                     await ctx.send("exp yüklendi")
                 else:
@@ -257,13 +244,11 @@ class User(commands.Cog):
         if result is None:
             await ctx.send("Kayıt olmadan leetcode hesabı bağlayamazsın")
         else:
-            cursor.execute(f"SELECT user_id FROM urls WHERE user_id = {ctx.author.id}")
-            r = cursor.fetchone()
-            if r is None:
+            r = self.db.get_url(ctx.author.id)
+            if r[1] is None:
                 await ctx.send("Leetcode hesabınız yok, bağlamak için ~leetcode sign komutunu kullanın")
             else:
-                cursor.execute(f"SELECT user_id FROM urls WHERE leetcode = '{username}'")
-                new_r = cursor.fetchone()
+                new_r = self.db.get_leet_user(username)
                 if new_r is None:
                     self.db.set_url_leetcode(ctx.author.id,username)
                     await ctx.send(f"Leetcode hesabınız {username} olarak değiştirildi")
