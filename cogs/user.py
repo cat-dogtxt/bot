@@ -221,34 +221,39 @@ class User(commands.Cog):
         '''
         Leetcode hesabınızı bağlamak için kullanılır.
         '''
-        db = sqlite3.connect("db.sqlite3")
-        cursor = db.cursor()
-        cursor.execute(f"SELECT user_id FROM main WHERE user_id = {ctx.author.id}")
-        result = cursor.fetchone()
+        # db = sqlite3.connect("db.sqlite3")
+        # cursor = db.cursor()
+        # cursor.execute(f"SELECT user_id FROM main WHERE user_id = {ctx.author.id}")
+        # result = cursor.fetchone()
+        result = self.db.get_user(ctx.author.id)
         if result is None:
             await ctx.send("Kayıt olmadan leetcode hesabı bağlayamazsın")
         else:
             r = self.db.get_url(ctx.author.id)
             print(r)
             if r[1] is None:
-                cursor.execute(f"select user_id")
-                if r[1] is None:
-                    sql = (f'UPDATE urls SET leetcode = "{username}" WHERE user_id = {ctx.author.id}')
-                    cursor.execute(sql)
+                res = self.db.get_leet_user(username)
+                print(res)
+                if res[0] is None:
+                    # sql = (f'UPDATE urls SET leetcode = "{username}" WHERE user_id = {ctx.author.id}')
+                    # cursor.execute(sql)
+                    self.db.set_url_leetcode(ctx.author.id,username)
                     await ctx.send(f"Leetcode hesabınız {username} olarak ayarlandı")#Exp yüklenecek ve embed gönderilecek
-                    db.commit()
+                    # db.commit()
                     exps = self.load_exp(username)
-                    sql = (f'''
-                        UPDATE exp SET leetcode_exp = {exps} WHERE user_id = {ctx.author.id};
-                    ''')
-                    cursor.execute(sql)
-                    db.commit()
+                    # sql = (f'''
+                    #     UPDATE exp SET leetcode_exp = {exps} WHERE user_id = {ctx.author.id};
+                    # ''')
+                    # cursor.execute(sql)
+                    # db.commit()
+                    self.db.set_exp(ctx.author.id,exps,"leetcode_exp")
+                    await ctx.send("exp yüklendi")
                 else:
-                    await ctx.send("Bu leetcode hesabı başka birisi tarafından kullanılıyor")
+                    await ctx.send(f"Bu leetcode hesabı başka birisi tarafından kullanılıyor {self.bot.get_user(res[0]).mention}")
                 
             else:
                 await ctx.send("Leetcode hesabınız zaten var, değiştirmek için ~leetcode change komutunu kullanın")
-        cursor.close()
+
     @leetcode.command()
     async def change(self,ctx,username:str):
         '''

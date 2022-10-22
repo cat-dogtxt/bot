@@ -24,5 +24,5 @@ async def main():
     await load()
     await bot.start(DC_TOKEN)
 
-asyncio.run(main(),debug=True)
+asyncio.run(main())
 #############################################################################################

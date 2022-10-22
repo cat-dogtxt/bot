@@ -93,7 +93,14 @@ class Models:
         self.cursor.execute('''
             UPDATE urls SET  leetcode = ? WHERE user_id = ?''',(leetcode,user_id))
         self.db.commit()
-    def set_exp(self,user_id,exp):
-        self.cursor.execute('''
-            UPDATE exp SET exp = ? WHERE user_id = ?''',(exp,user_id))
+
+    def set_exp(self,user_id,exp,text):#text -> ["leetcode_exp","exp"]
+        self.cursor.execute(f'''
+            UPDATE exp SET {text} = ? WHERE user_id = ?''',(exp,user_id))
         self.db.commit()
+    
+    def get_leet_user(self,username):
+        self.cursor.execute(f'''
+            SELECT user_id FROM urls WHERE leetcode='{username}'
+            ''')
+        return self.cursor.fetchone()
