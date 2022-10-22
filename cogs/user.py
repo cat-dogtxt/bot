@@ -134,11 +134,7 @@ class User(commands.Cog):
             member = ctx.author
         name = member.display_name
         pfp = member.display_avatar
-        
-        db = sqlite3.connect("db.sqlite3")
         result = self.db.get_user_info(member.id)
-        print(result)
-        print(member.id)
         if result is None:
             await ctx.send(f"{member.mention} kayıtlı değil!")
         else:
@@ -148,7 +144,7 @@ class User(commands.Cog):
             embed.set_author(name=f"{name}",icon_url=pfp)
             embed.add_field(name="Exp",value=f"{exp+leetcode_exp}")
             embed.add_field(name="Level",value=f"{level}",inline=True)
-            embed.add_field(name="Amount",value=f"{amount}",inline=False)
+            embed.add_field(name="Amount",value=f"{amount}",inline=True)
             embed.set_footer(icon_url=ctx.author.display_avatar,text=f"{ctx.author.name} Made this banner")
             
             await ctx.send(embed=embed)
