@@ -3,6 +3,9 @@ import sqlite3
 import discord
 import datetime
 from discord.ext import commands
+from discord.utils import get
+
+
 #sql
 import random
 
@@ -41,6 +44,12 @@ class Gambling(commands.Cog):
             amount -= money     
         await ctx.send(f"{cf} -> {amount}")
 
+    @commands.command()
+    async def bj(self,ctx,amount):
+        embed = discord.Embed(title="~leaderboard",description="Leaderboard görüntüleme komutları",colour=discord.Colour.random()) 
+        embed.add_field(name="1.",value=f"<:2C:1032644926137188433>",inline=True)
+        embed.add_field(name="2.",value=f"{amount}",inline=True)
 
+        await ctx.send(embed=embed)
 async def setup(bot):
     await bot.add_cog(Gambling(bot))
