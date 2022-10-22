@@ -5,11 +5,15 @@ from discord.ext import commands
 #sql
 from discord import *
 import sqlite3
+import sys
+sys.path.insert(0,"..")
+from model import *
 
 import requests
 class User(commands.Cog):
     def __init__(self,bot:commands.Bot):
         self.bot = bot
+        self.db = Models()
     def get_leetcode_info(self,username):
             '''
             Leetcode'da çözdüğünüz soruları çeker.
@@ -69,26 +73,13 @@ class User(commands.Cog):
         '''
         db = sqlite3.connect("db.sqlite3")
         cursor = db.cursor()
-        cursor.execute(f"SELECT user_id FROM main WHERE user_id = {ctx.author.id}")
-        result = cursor.fetchone()
+        result = self.db.get_user(ctx.author.id)
         if result is None:
-            sql = (f'''
-                INSERT INTO main(user_id,signDate,takeDate) VALUES(?,?,?)
-            ''')
-            val = (ctx.author.id,datetime.datetime.now(),datetime.datetime.now())
-            cursor.execute(sql,val)
+            self.db.add_user(ctx.author.id)
             await ctx.send(f"Kayıt yapıldı.{ctx.author.id}")
-            sql1 = (f'''
-                INSERT INTO exp(user_id,exp,level,amount) VALUES(?,?,?,?)
-            ''')
-            val = (ctx.author.id,100,0,100)
-            cursor.execute(sql1,val)
-            
+            self.db.add_exp(ctx.author.id)     
             await ctx.send(f"Expler yüklendi.{ctx.author.id}")
-            sql2 = (f'''
-                INSERT INTO urls(user_id) VALUES({ctx.author.id})
-            ''')
-            cursor.execute(sql2)
+            self.db.add_url(ctx.author.id)
             await ctx.send(f"Urlleri girmen gerekiyor")
             db.commit()
         else:
