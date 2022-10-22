@@ -109,7 +109,7 @@ class User(commands.Cog):
         embed = discord.Embed(title="Leaderboard",color=discord.Colour.random())
         for i in result:
             embed.add_field(name=f"{self.bot.get_user(i[0])}",value=f"{i[1]} exp",inline=False)
-        embed.set_footer(text=f"{ctx.author.name} tarafından sorgulandı.")
+        embed.set_footer(icon_url=ctx.author.display_avatar,text=f"{ctx.author.name} tarafından sorgulandı.")
         await ctx.send(embed=embed) 
         cursor.close()
     @leaderboard.command()
@@ -121,7 +121,7 @@ class User(commands.Cog):
         embed = discord.Embed(title="Leaderboard",color=discord.Colour.random())
         for i in result:
             embed.add_field(name=f"{self.bot.get_user(i[0])}",value=f"{i[1]} amount",inline=False)
-        embed.set_footer(text=f"{ctx.author.name} tarafından sorgulandı.")
+        embed.set_footer(icon_url=ctx.author.display_avatar,text=f"{ctx.author.name} tarafından sorgulandı.")
         await ctx.send(embed=embed) 
         cursor.close()
     
@@ -136,22 +136,20 @@ class User(commands.Cog):
         pfp = member.display_avatar
         
         db = sqlite3.connect("db.sqlite3")
-        cursor = db.cursor()
-        cursor.execute(f"SELECT exp,level,amount,leetcode_exp FROM exp WHERE user_id = {member.id}")
-        result = cursor.fetchone()
+        result = self.db.get_user_info(member.id)
         print(result)
         print(member.id)
         if result is None:
             await ctx.send(f"{member.mention} kayıtlı değil!")
         else:
-            exp,level,amount,l_exp = result
+            user_id,exp,level,amount,leetcode_exp = result
             embed = discord.Embed(title="Üye bilgi", description="Üye",colour=discord.Colour.random())
             #embed.set_image(url=pfp)
             embed.set_author(name=f"{name}",icon_url=pfp)
-            embed.add_field(name="Exp",value=f"{exp+l_exp}")
+            embed.add_field(name="Exp",value=f"{exp+leetcode_exp}")
             embed.add_field(name="Level",value=f"{level}",inline=True)
             embed.add_field(name="Amount",value=f"{amount}",inline=False)
-            embed.set_footer(text=f"{name} Made this banner")
+            embed.set_footer(icon_url=ctx.author.display_avatar,text=f"{ctx.author.name} Made this banner")
             
             await ctx.send(embed=embed)
 

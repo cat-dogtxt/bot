@@ -66,6 +66,11 @@ class Models:
             SELECT * FROM main WHERE user_id=?''',(user_id,))
         return self.cursor.fetchone()
 
+
+    def get_user_info(self,user_id):
+        self.cursor.execute('''
+            SELECT * FROM exp WHERE user_id=?''',(user_id,))
+        return self.cursor.fetchone()
     def get_exp(self,user_id):
         self.cursor.execute('''
             SELECT * FROM exp WHERE user_id=?''',(user_id,))
