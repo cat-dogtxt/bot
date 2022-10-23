@@ -227,17 +227,9 @@ class User(commands.Cog):
                 res = self.db.get_leet_user(username)
                 print(res)
                 if res is None:
-                    # sql = (f'UPDATE urls SET leetcode = "{username}" WHERE user_id = {ctx.author.id}')
-                    # cursor.execute(sql)
                     self.db.set_url_leetcode(ctx.author.id,username)
                     await ctx.send(f"Leetcode hesabınız {username} olarak ayarlandı")#Exp yüklenecek ve embed gönderilecek
-                    # db.commit()
                     exps = self.load_exp(username)
-                    # sql = (f'''
-                    #     UPDATE exp SET leetcode_exp = {exps} WHERE user_id = {ctx.author.id};
-                    # ''')
-                    # cursor.execute(sql)
-                    # db.commit()
                     self.db.set_exp(ctx.author.id,exps,"leetcode_exp")
                     await ctx.send("exp yüklendi")
                 else:
