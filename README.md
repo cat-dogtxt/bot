@@ -24,3 +24,6 @@
   ```
   python3 main.py
   ```
+
+## Commands
+To see commands type `%help` in the discord server.
