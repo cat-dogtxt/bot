@@ -8,12 +8,12 @@
 - Install packages: 
   
   ```
-  cd cse-discord-bot
+  cd bot
   python3 -m pip install -r requirements.txt
   ```
   or
   ```
-  cd cse-discord-bot
+  cd bot
   pip3 install -r requirements.txt
   ```
 ## Run the bot:
