@@ -5,6 +5,9 @@
 - Create an `.env` file and add a line:
   
    ``` DC_TOKEN = [TOKEN_ID]```
+   
+   
+   Example: `DC_TOKEN = 1234567890ABCDEFG`
 - Install packages: 
   
   ```
