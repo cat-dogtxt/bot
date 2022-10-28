@@ -8,7 +8,8 @@ import sqlite3
 import sys
 sys.path.insert(0,"..")
 from model import *
-
+#from discord_ui import *
+from discord.ui import View, Button
 import requests
 class User(commands.Cog):
     def __init__(self,bot:commands.Bot):
@@ -256,6 +257,43 @@ class User(commands.Cog):
                     cursor.close()
                 else:
                     await ctx.send(f"Bu leetcode hesabı başka birisi tarafından kullanılıyor. Kullanan kişi {self.bot.get_user(new_r[0]).mention} ")
+    @leetcode.command()
+    async def challange(self,interaction:discord.Interaction):
+        embedList = []
+        for i in range(5):
+            embed = discord.Embed(title=f"Problem Name",color=discord.Color.blurple())
+            embed.add_field(name=f"Problem{i}",value="Problem Description")
+            embedList.append(embed)
+        embed = discord.Embed(title="Problem Name",color=discord.Color.blurple())
+        value = '''
+        Problem Description
+        '''
+        embed.add_field(name="Problem description",value=value,inline=True)
+        b_page_up = Button(style=discord.ButtonStyle.gray,emoji="➡️")
+        b_page_down = Button(style=discord.ButtonStyle.gray,emoji="⬅️")
+        view = View()
+        view.add_item(b_page_down)
+        view.add_item(b_page_up)
+        pagination = 0
+        async def b_callback(interaction):
+            nonlocal pagination
+            pagination -=1
+            print(pagination)
+            if pagination < 0:
+                await interaction.response.send_message("geri dönemezsin",ephemeral=True)
+            else:
+                await interaction.response.edit_message(embed=embedList[pagination])
+        async def u_callback(interaction):
+            nonlocal pagination
+            pagination +=1
+            print(pagination)
+            if pagination > 4:
+                await interaction.response.send_message("ileri gidemezsin",ephemeral=True)
+            else:
+                await interaction.response.edit_message(embed=embedList[pagination])
+        b_page_down.callback = b_callback
+        b_page_up.callback = u_callback
+        await interaction.send("Hi",embed=embed,view=view)
     # @commands.group()
     # async def github(self,ctx):
     #     '''
@@ -268,7 +306,7 @@ class User(commands.Cog):
     #         embed.add_field(name="~github update",value="Github'da yaptığınız commitlerden exp kazanmak için kullanılır",inline=False)
     #         await ctx.send(embed=embed)
     
-    # @github.command()
+    # @github.command()➡️
     # async def sign(self,ctx,username:str):
     #     '''
     #         Github hesabınızı bağlamak için kullanılır.
