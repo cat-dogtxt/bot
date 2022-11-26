@@ -1,11 +1,14 @@
 import discord
 from discord.ext import commands
-
+sys.path.insert(0,"..")
+from model import *
 
 class Base(commands.Cog):
     def __init__(self,bot,p_lang=""):
         self.bot = bot
         self.p_lang = p_lang
+        self.db = Models()
+
     @commands.Cog.listener()
     async def on_ready(self):
         channel = self.bot.get_channel(1043220744185847811)

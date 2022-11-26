@@ -14,7 +14,12 @@ class Models:
                 user_id TEXT NOT NULL PRIMARY KEY,
                 signDate DATETIME DEFAULT CURRENT_TIMESTAMP,
                 takeDate DATETIME DEFAULT CURRENT_TIMESTAMP,
-                languages TEXT DEFAULT ""
+            )
+        ''')
+        self.cursor.execute('''
+            CREATE TABLE IF NOT EXISTS plang(
+                user_id TEXT NOT NULL PRIMARY KEY,
+                languages TEXT NOT NULL DEFAULT ""
             )
         ''')
         self.cursor.execute('''
@@ -109,3 +114,18 @@ class Models:
         self.cursor.execute(f'''
             UPDATE exp SET leetcode_exp = ? WHERE user_id = ?''',(exp,user_id))
         self.db.commit()
+    
+    def add_language(self,user_id,language):
+        self.cursor.execute(f'''
+            INSERT INTO plang(user_id,languages) VALUES(?,?)''',(user_id,language))
+        self.db.commit()
+    
+    def remove_language(self,user_id,language):
+        self.cursor.execute(f'''
+            DELETE FROM plang WHERE user_id=? AND languages=?''',(user_id,language))
+        self.db.commit()
+    
+    def get_language(self,user_id):
+        self.cursor.execute(f'''
+            SELECT * FROM language WHERE user_id = ?''',(user_id,))
+        return self.cursor.fetchone()
