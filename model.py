@@ -13,7 +13,7 @@ class Models:
             CREATE TABLE IF NOT EXISTS main(
                 user_id TEXT NOT NULL PRIMARY KEY,
                 signDate DATETIME DEFAULT CURRENT_TIMESTAMP,
-                takeDate DATETIME DEFAULT CURRENT_TIMESTAMP,
+                takeDate DATETIME DEFAULT CURRENT_TIMESTAMP
             )
         ''')
         self.cursor.execute('''
