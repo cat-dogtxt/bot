@@ -11,6 +11,7 @@ from model import *
 #from discord_ui import *
 from discord.ui import View, Button
 import requests
+from PyPDF2 import *
 class User(commands.Cog):
     def __init__(self,bot:commands.Bot):
         self.bot = bot
@@ -294,6 +295,42 @@ class User(commands.Cog):
         b_page_down.callback = b_callback
         b_page_up.callback = u_callback
         await interaction.send("Hi",embed=embed,view=view)
+    @commands.command()
+    async def save(self,ctx):
+        if ctx.message.attachments[0].url.endswith(".pdf"):
+            await ctx.message.attachments[0].save('ogrencibelge.pdf')
+            reader = PdfReader("ogrencibelge.pdf")
+            page = reader.pages[0]
+            pdfa = page.extract_text(0,90)
+            liste = pdfa.split(".")
+            sınıf1 =" Kimlik No\nİLGİLİ MAKAMA:\n:\n:\n:\n:\n:\n:\nAKTİF ÖĞRENCİ: Öğrencilik Durumu\nSınıf :1"
+            sınıf2 =" Kimlik No\nİLGİLİ MAKAMA:\n:\n:\n:\n:\n:\n:\nAKTİF ÖĞRENCİ: Öğrencilik Durumu\nSınıf :2"
+            sınıf3 =" Kimlik No\nİLGİLİ MAKAMA:\n:\n:\n:\n:\n:\n:\nAKTİF ÖĞRENCİ: Öğrencilik Durumu\nSınıf :3"
+            sınıf4 =" Kimlik No\nİLGİLİ MAKAMA:\n:\n:\n:\n:\n:\n:\nAKTİF ÖĞRENCİ: Öğrencilik Durumu\nSınıf :4"
+            kontrolhaz =" Kimlik No\nİLGİLİ MAKAMA:\n:\n:\n:\n:\n:\n:\nAKTİF ÖĞRENCİ: Öğrencilik Durumu\nSınıf :YABANCI DİL HAZIRLIK\nProgram BURSA TEKNİK ÜNİVERSİTESİ/MÜHENDİSLİK VE DOĞA BİLİMLERİ\nFAKÜLTESİ/BİLGİSAYAR MÜHENDİSLİĞİ BÖLÜMÜ/BİLGİSAYAR"
+            kontrol ="SINIF\nProgram BURSA TEKNİK ÜNİVERSİTESİ/MÜHENDİSLİK VE DOĞA BİLİMLERİ\nFAKÜLTESİ/BİLGİSAYAR MÜHENDİSLİĞİ BÖLÜMÜ/BİLGİSAYAR\nMÜHENDİSLİĞİ PR"
+            guild_id = 768189401213304892
+            roles = ["1.sınıf","2.sınıf","3.sınıf","4.sınıf","hazırlık"]
+            server = self.bot.get_guild(guild_id)
+            roles = [discord.utils.get(server.roles, name=language.lower()) for language in roles]
+            member = await server.fetch_member(ctx.message.author.id)
+            if any(kontrol in s for s in liste):
+                    if any(sınıf1 in s for s in liste):
+                        await member.add_roles(roles[0], reason="1. Sınıf Ogrencisi")
+                    elif any(sınıf2 in s for s in liste):
+                        await member.add_roles(roles[1], reason="2. Sınıf Ogrencisi")
+                    elif any(sınıf3 in s for s in liste):
+                        await member.add_roles(roles[2], reason="3. Sınıf Ogrencisi")
+                    elif any()(sınıf4 in s for s in liste):
+                        await member.add_roles(roles[3], reason="4. Sınıf Ogrencisi")
+                    else:
+                        pass
+                        
+            else:
+                if any(kontrolhaz in s for s in liste):
+                    await member.add_roles(roles[4], reason="Hazırlık Ogrencisi")
+                else:
+                    await ctx.send("Okul Öğrencisi değilsiniz")
     # @commands.group()
     # async def github(self,ctx):
     #     '''
