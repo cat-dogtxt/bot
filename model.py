@@ -128,4 +128,4 @@ class Models:
     def get_language(self,user_id):
         self.cursor.execute(f'''
             SELECT * FROM language WHERE user_id = ?''',(user_id,))
-        return self.cursor.fetchone()
+        return self.cursor.fetchall()
