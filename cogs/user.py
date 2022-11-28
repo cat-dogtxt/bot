@@ -9,7 +9,7 @@ import sys
 sys.path.insert(0,"..")
 from model import *
 #from discord_ui import *
-from discord.ui import View, Button
+from discord.ui import View, Button, Select
 import requests
 from PyPDF2 import *
 class User(commands.Cog):
