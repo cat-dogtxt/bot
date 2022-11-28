@@ -10,6 +10,7 @@ class Base(commands.Cog):
         self.p_kayit = p_kayit
         self.p_lang = p_lang
         self.db = Models()
+        print("BOT IS ONLINE") 
 
     @commands.Cog.listener()
     async def on_guild_join(self,guild):

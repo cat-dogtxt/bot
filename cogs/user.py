@@ -10,8 +10,10 @@ sys.path.insert(0,"..")
 from model import *
 #from discord_ui import *
 from discord.ui import View, Button, Select
+from discord.ui import *
 import requests
 from PyPDF2 import *
+import pytesseract
 class User(commands.Cog):
     def __init__(self,bot:commands.Bot):
         self.bot = bot
@@ -57,7 +59,7 @@ class User(commands.Cog):
                 hard = json_data['data']['matchedUser']['submitStats']['acSubmissionNum'][3]['count']
                 
                 context = {'username': usernameHandle, 'total': total, 'easy': easy, 'med':med, 'hard': hard}                
-                return context    
+                return context        
     def load_exp(self,username):
         #cursor.execute(f"SELECT * FROM exp WHERE user_id = {user_id}")
         leetcode_info = self.get_leetcode_info(username)
@@ -68,25 +70,25 @@ class User(commands.Cog):
             total_point = leetcode_info['easy']*20 + leetcode_info['med']*50 + leetcode_info['hard']*500
             return total_point
             
-    @commands.command()
-    async def kayit(self,ctx):
-        '''
-        Kayıt olmak için kullanılır.
-        '''
-        db = sqlite3.connect("db.sqlite3")
-        cursor = db.cursor()
-        result = self.db.get_user(ctx.author.id)
-        if result is None:
-            self.db.add_user(ctx.author.id)
-            await ctx.send(f"Kayıt yapıldı.{ctx.author.id}")
-            self.db.add_exp(ctx.author.id)     
-            await ctx.send(f"Expler yüklendi.{ctx.author.id}")
-            self.db.add_url(ctx.author.id)
-            await ctx.send(f"Urlleri girmen gerekiyor")
-            db.commit()
-        else:
-            await ctx.send(f"Zaten kayıtlısın id:{ctx.author.id}")
-        cursor.close()
+    # @commands.command()
+    # async def kayit(self,ctx):
+    #     '''
+    #     Kayıt olmak için kullanılır.
+    #     '''
+    #     db = sqlite3.connect("db.sqlite3")
+    #     cursor = db.cursor()
+    #     result = self.db.get_user(ctx.author.id)
+    #     if result is None:
+    #         self.db.add_user(ctx.author.id)
+    #         await ctx.send(f"Kayıt yapıldı.{ctx.author.id}")
+    #         self.db.add_exp(ctx.author.id)     
+    #         await ctx.send(f"Expler yüklendi.{ctx.author.id}")
+    #         self.db.add_url(ctx.author.id)
+    #         await ctx.send(f"Urlleri girmen gerekiyor")
+    #         db.commit()
+    #     else:
+    #         await ctx.send(f"Zaten kayıtlısın id:{ctx.author.id}")
+    #     cursor.close()
     
     @commands.group(describe="Liderlik görüntülemek için kullanılır.")
     async def leaderboard(self,ctx):
@@ -295,11 +297,59 @@ class User(commands.Cog):
         b_page_down.callback = b_callback
         b_page_up.callback = u_callback
         await interaction.send("Hi",embed=embed,view=view)
-    @commands.command()
-    async def save(self,ctx):
-        if ctx.message.attachments[0].url.endswith(".pdf"):
-            await ctx.message.attachments[0].save('ogrencibelge.pdf')
-            reader = PdfReader("ogrencibelge.pdf")
+    # @commands.command()
+    # async def teseract(self,ctx):
+    #     print("burdayim")
+    #     await ctx.message.attachments[0].save('ogrencibelge.jpg')
+    #     print("save")
+    #     kontrol=""
+    #     pytesseract.pytesseract.tesseract_cmd = r'C:\Users\Samet\AppData\Local\Tesseract-OCR\tesseract'
+    #     print(pytesseract.image_to_string(r'C:\Users\Samet\OneDrive\Masaüstü\dccc\cse-discord-bot\ogrencibelge.jpg').split("\n"))
+    #     text = pytesseract.image_to_string(r'C:\Users\Samet\OneDrive\Masaüstü\dccc\cse-discord-bot\ogrencibelge.jpg').split("\n")
+    #     if any(kontrol in s for s in text):
+    #         print("okul öğrencisi")
+    #     else:
+    #         print("bozuksun")
+    @commands.Cog.listener()
+    async def on_member_join(self,member):
+        result = self.db.get_user(member.id)
+        print(result)
+        guild_id = 768189401213304892
+        roles = ["1.sınıf","2.sınıf","3.sınıf","4.sınıf","hazırlık"]
+        server = self.bot.get_guild(guild_id)
+        roles = [discord.utils.get(server.roles, name=language.lower()) for language in roles]
+        if result is None:
+            pass
+        else:
+            result = self.db.get_user_class(member.id)
+            if(result==1):
+                self.db.add_user_class(member.id,1)
+                await member.add_roles(roles[0], reason="1. Sınıf Ogrencisi")
+                await member.send("Başariyla kayit oldunuz")
+            elif(result==2):
+                self.db.set_user_class(member.id,2)
+                await member.add_roles(roles[1], reason="2. Sınıf Ogrencisi")
+                await member.send("Başariyla kayit oldunuz")
+            elif(result==3):
+                self.db.set_user_class(member.id,3)
+                await member.add_roles(roles[2], reason="3. Sınıf Ogrencisi")
+                await member.send("Başariyla kayit oldunuz")
+            elif(result==4):
+                self.db.set_user_class(member.id,4)
+                await member.add_roles(roles[3], reason="4. Sınıf Ogrencisi")
+                await member.send("Başariyla kayit oldunuz")
+            elif(result==0):
+                self.db.set_user_class(member.id,0)
+                await member.add_roles(roles[4], reason="Hazırlık Ogrencisi")
+                await member.send("Başariyla kayit oldunuz")
+    #############################3
+    @commands.Cog.listener()
+    async def on_message(self,message):
+        if message.author == self.bot.user:
+            return
+        if message.attachments[0].url.endswith(".pdf"):
+            await message.attachments[0].save('C:\\Users\\Samet\\OneDrive\\Masaüstü\\dccc\\cse-discord-bot\\ogrencipdf\\ogrenci'+str(message.author)+'.pdf')
+            reader = PdfReader('C:\\Users\\Samet\\OneDrive\\Masaüstü\\dccc\\cse-discord-bot\\ogrencipdf\\ogrenci'+str(message.author)+'.pdf')
             page = reader.pages[0]
             pdfa = page.extract_text(0,90)
             liste = pdfa.split(".")
@@ -313,24 +363,99 @@ class User(commands.Cog):
             roles = ["1.sınıf","2.sınıf","3.sınıf","4.sınıf","hazırlık"]
             server = self.bot.get_guild(guild_id)
             roles = [discord.utils.get(server.roles, name=language.lower()) for language in roles]
-            member = await server.fetch_member(ctx.message.author.id)
+            member = await server.fetch_member(message.author.id)
+            userid=message.author.id
             if any(kontrol in s for s in liste):
                     if any(sınıf1 in s for s in liste):
+                        self.db.add_user_class(userid,1)
                         await member.add_roles(roles[0], reason="1. Sınıf Ogrencisi")
+                        await member.send("Başariyla kayit oldunuz")
                     elif any(sınıf2 in s for s in liste):
+                        print("aaa")
+                        self.db.add_user_class(userid,2)
+                        print("bbbb")
                         await member.add_roles(roles[1], reason="2. Sınıf Ogrencisi")
+                        await member.send("Başarıyla kayıt oldunuz")
                     elif any(sınıf3 in s for s in liste):
+                        self.db.add_user_class(userid,3)
                         await member.add_roles(roles[2], reason="3. Sınıf Ogrencisi")
-                    elif any()(sınıf4 in s for s in liste):
+                        await member.send("Başarıyla kayıt oldunuz")
+                    elif any(sınıf4 in s for s in liste):
+                        self.db.add_user_class(userid,4)
                         await member.add_roles(roles[3], reason="4. Sınıf Ogrencisi")
+                        await member.send("Başarıyla kayıt oldunuz")
                     else:
                         pass
                         
             else:
                 if any(kontrolhaz in s for s in liste):
                     await member.add_roles(roles[4], reason="Hazırlık Ogrencisi")
+                    self.db.add_user_class(userid,0)
+                    await member.send("Başarıyla kayıt oldunuz")
                 else:
-                    await ctx.send("Okul Öğrencisi değilsiniz")
+                    await member.send("Tekrar deneyiniz.Tekrarlanması durumunda yetkililere bildiriniz")
+        elif(message.attachments[0].url.endswith(".png") or message.attachments[0].url.endswith(".jpg") or message.attachments[0].url.endswith(".jpeg")):
+            await message.attachments[0].save('C:\\Users\\Samet\\OneDrive\\Masaüstü\\dccc\\cse-discord-bot\\ogrenci_karti\\ogrencibelge'+str(message.author)+'.png')
+            select = Select(
+            placeholder="Select an option",
+            options=[
+                SelectOption(label="Hazırlık", value=0),
+                SelectOption(label="1.Sınıf", value=1),
+                SelectOption(label="2.Sınıf", value=2),
+                SelectOption(label="3.Sınıf", value=3),
+                SelectOption(label="4.Sınıf", value=4),
+            ],
+        )
+        guild_id = 768189401213304892
+        roles = ["1.sınıf","2.sınıf","3.sınıf","4.sınıf","hazırlık"]
+        server = self.bot.get_guild(guild_id)
+        roles = [discord.utils.get(server.roles, name=language.lower()) for language in roles]
+        member = await server.fetch_member(message.author.id)
+        userid=message.author.id
+        async def callback_selected(interaction: Interaction):
+            select.disabled = True
+            await interaction.response.edit_message(view=view)
+            await interaction.followup.send(f"Selected {select.values}")
+            a=int(select.values[0])
+            print(a)
+            if a == 1:
+                self.db.add_user_class(userid,1)
+                await member.add_roles(roles[0], reason="1. Sınıf Ogrencisi")
+                await member.send("Başariyla kayit oldunuz")
+            elif a==2:
+                self.db.add_user_class(userid,2)
+                await member.add_roles(roles[1], reason="2. Sınıf Ogrencisi")
+                await member.send("Başarıyla kayıt oldunuz")
+            elif a==3:
+                self.db.add_user_class(userid,3)
+                await member.add_roles(roles[2], reason="3. Sınıf Ogrencisi")
+                await member.send("Başarıyla kayıt oldunuz")
+            elif a == 4:
+                self.db.add_user_class(userid,4)
+                await member.add_roles(roles[3], reason="4. Sınıf Ogrencisi")
+                await member.send("Başarıyla kayıt oldunuz")
+            elif a == 0:
+                await member.add_roles(roles[4], reason="Hazırlık Ogrencisi")
+                self.db.add_user_class(userid,0)
+                await member.send("Başarıyla kayıt oldunuz")
+            else:
+                await member.send("Hata 404")
+            
+
+        select.callback = callback_selected
+        view = View()
+        view.add_item(select)
+        kontrol="BILGISiYAR MUH."
+        pytesseract.pytesseract.tesseract_cmd = r'C:\Users\Samet\AppData\Local\Tesseract-OCR\tesseract'
+        print(pytesseract.image_to_string(r'C:\Users\Samet\OneDrive\Masaüstü\dccc\cse-discord-bot\ogrenci_karti\ogrencibelge'+str(message.author)+'.png').split("\n"))
+        text = pytesseract.image_to_string(r'C:\Users\Samet\OneDrive\Masaüstü\dccc\cse-discord-bot\ogrenci_karti\ogrencibelge'+str(message.author)+'.png').split("\n")
+        
+        if any(kontrol in s for s in text):
+            await message.channel.send(view=view)
+            print("dsfaaaaaa")
+        else:
+            print("Tekrar deneyiniz.Tekrarlanması durumunda yetkililere bildiriniz")
+
     # @commands.group()
     # async def github(self,ctx):
     #     '''

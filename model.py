@@ -12,6 +12,7 @@ class Models:
         self.cursor.execute('''
             CREATE TABLE IF NOT EXISTS main(
                 user_id TEXT NOT NULL PRIMARY KEY,
+                user_class INTEGER NOT NULL DEFAULT 0,
                 signDate DATETIME DEFAULT CURRENT_TIMESTAMP,
                 takeDate DATETIME DEFAULT CURRENT_TIMESTAMP
             )
@@ -52,6 +53,10 @@ class Models:
         self.cursor.execute('''
             INSERT INTO main(user_id) VALUES(?)''',(user_id,))
         self.db.commit()
+    def add_user_class(self,user_id,user_class):
+        self.cursor.execute(f'''
+            INSERT INTO main(user_id,user_class) VALUES(?,?)''',(user_id,user_class))
+        self.db.commit()
 
     def add_exp(self,user_id):
         EXP,LEVEL,AMOUNT =100,0,100
@@ -72,6 +77,10 @@ class Models:
     def get_user(self,user_id):
         self.cursor.execute('''
             SELECT * FROM main WHERE user_id=?''',(user_id,))
+        return self.cursor.fetchone()
+    def get_user_class(self,user_id):
+        self.cursor.execute(f'''
+            SELECT user_class FROM main WHERE user_id = ?''',(user_id,))
         return self.cursor.fetchone()
 
     def get_amount(self,user_id):
@@ -129,3 +138,7 @@ class Models:
         self.cursor.execute(f'''
             SELECT * FROM language WHERE user_id = ?''',(user_id,))
         return self.cursor.fetchall()
+    def set_user_class(self,user_id,user_class):
+        self.cursor.execute(f'''
+            UPDATE main SET user_class = ? WHERE user_id = ?''',(user_class,user_id))
+        self.db.commit()
