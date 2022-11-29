@@ -14,7 +14,7 @@ class Base(commands.Cog):
 
     @commands.Cog.listener()
     async def on_guild_join(self,guild):
-        if guild.id == 1018645651241836544:
+        if guild.id == 768189401213304892:
             a = 0
             for channel in guild.channels:
                 if channel.name == "kayit-ol":
@@ -71,14 +71,49 @@ class Base(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_join(self,member):
-        print(f"{member} has joined a server.")
-        await member.send("Kayıt olmak için öğrenci belgenizi yollayınız!\n E-devlet üzerinden alacağınız öğrenci belgenizi buraya atarak veya düzgün bir şekilde çekilmiş öğrenci kartınızın fotoğrafını buraya atınız.")
-
+        result = self.db.get_user(member.id)
+        print(result)
+        guild_id = 768189401213304892
+        roles = ["1.sınıf","2.sınıf","3.sınıf","4.sınıf","hazırlık"]
+        server = self.bot.get_guild(guild_id)
+        roles = [discord.utils.get(server.roles, name=language.lower()) for language in roles]
+        if result is None:
+            print(f"{member} has joined a server.")
+            await member.send("Kayıt olmak için öğrenci belgenizi yollayınız!\n E-devlet üzerinden alacağınız öğrenci belgenizi buraya atarak veya düzgün bir şekilde çekilmiş öğrenci kartınızın fotoğrafını buraya atınız.")
+        else:
+            result = self.db.get_user_class(member.id)
+            if(result==1):
+                self.db.add_user_class(member.id,1)
+                await member.add_roles(roles[0], reason="1. Sınıf Ogrencisi")
+                await member.send("Başariyla kayit oldunuz")
+            elif(result==2):
+                self.db.set_user_class(member.id,2)
+                await member.add_roles(roles[1], reason="2. Sınıf Ogrencisi")
+                await member.send("Başariyla kayit oldunuz")
+            elif(result==3):
+                self.db.set_user_class(member.id,3)
+                await member.add_roles(roles[2], reason="3. Sınıf Ogrencisi")
+                await member.send("Başariyla kayit oldunuz")
+            elif(result==4):
+                self.db.set_user_class(member.id,4)
+                await member.add_roles(roles[3], reason="4. Sınıf Ogrencisi")
+                await member.send("Başariyla kayit oldunuz")
+            elif(result==0):
+                self.db.set_user_class(member.id,0)
+                await member.add_roles(roles[4], reason="Hazırlık Ogrencisi")
+                await member.send("Başariyla kayit oldunuz")
     # @commands.Cog.listener()
     # async def on_member_remove(member):
     #     channel = member.guild.system_channel
     #     await channel.send(f"{member.mention} okulu bıraktı sanırım:)) Hayatında başarılar!!")
-
+    @commands.Cog.listener()
+    async def on_member_update(self,before,after):
+        if before.guild.id == 768189401213304892:
+            result = self.db.get_user(after.id)
+            if result is None and result[1] == "":
+                if before.nick != after.nick:
+                    self.db.set_name_surname(after.id,after.nickname)
+                    
     @commands.Cog.listener()
     async def on_raw_reaction_add(self,payload):
         if payload.message_id == self.p_kayit.id:

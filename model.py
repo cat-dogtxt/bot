@@ -12,6 +12,7 @@ class Models:
         self.cursor.execute('''
             CREATE TABLE IF NOT EXISTS main(
                 user_id TEXT NOT NULL PRIMARY KEY,
+                name_surname TEXT DEFAULT "",
                 user_class INTEGER NOT NULL DEFAULT 0,
                 signDate DATETIME DEFAULT CURRENT_TIMESTAMP,
                 takeDate DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -49,14 +50,15 @@ class Models:
             )
         ''')
         print("Tables created")
-    def add_user(self,user_id):
-        self.cursor.execute('''
-            INSERT INTO main(user_id) VALUES(?)''',(user_id,))
-        self.db.commit()
-    def add_user_class(self,user_id,user_class):
+    def add_user(self,user_id,name_surname,user_class):
         self.cursor.execute(f'''
-            INSERT INTO main(user_id,user_class) VALUES(?,?)''',(user_id,user_class))
+            INSERT INTO main(user_id,name_surname,user_class) VALUES(?,?)''',(user_id,name_surname,user_class))
         self.db.commit()
+    
+    # def add_user_class(self,user_id,user_class):
+    #     self.cursor.execute(f'''
+    #         INSERT INTO main(user_id,user_class) VALUES(?,?)''',(user_id,user_class))
+    #     self.db.commit()
 
     def add_exp(self,user_id):
         EXP,LEVEL,AMOUNT =100,0,100
