@@ -333,17 +333,21 @@ class User(commands.Cog):
             guild_id = 768189401213304892
             roles = ["1.sınıf","2.sınıf","3.sınıf","4.sınıf","hazırlık"]
             server = self.bot.get_guild(guild_id)
-            roles = [discord.utils.get(server.roles, name=language.lower()) for language in roles]
+            roles = [discord.utils.get(server.roles, name=language.upper()) for language in roles]
             member = await server.fetch_member(message.author.id)
             userid=message.author.id
             if any(kontrol in s for s in liste):
                     if any(sınıf1 in s for s in liste):
-                        self.db.add_user(userid,1)
+                        self.db.add_user(userid,name_surname,1)
                         await member.add_roles(roles[0], reason="1. Sınıf Ogrencisi")
                         await member.send("Başariyla kayit oldunuz")
                     elif any(sınıf2 in s for s in liste):
+                        print("aaa")
                         self.db.add_user(userid,name_surname,2)
+                        print("aaa")
+                        print(roles[1])
                         await member.add_roles(roles[1], reason="2. Sınıf Ogrencisi")
+                        print("aaa")
                         await member.send("Başarıyla kayıt oldunuz")
                     elif any(sınıf3 in s for s in liste):
                         self.db.add_user(userid,name_surname,3)
@@ -354,7 +358,7 @@ class User(commands.Cog):
                         await member.add_roles(roles[3], reason="4. Sınıf Ogrencisi")
                         await member.send("Başarıyla kayıt oldunuz")
                     else:
-                        pass
+                        await member.send("Tekrar deneyiniz.Tekrarlanması durumunda yetkililere bildiriniz")
                         
             else:
                 if any(kontrolhaz in s for s in liste):
@@ -389,24 +393,25 @@ class User(commands.Cog):
             a=int(select.values[0])
             print(a)
             if a == 1:
-                self.db.add_user_class(userid,1)
+                print(text)
+                self.db.add_user(userid,text[1],1)
                 await member.add_roles(roles[0], reason="1. Sınıf Ogrencisi")
                 await member.send("Başariyla kayit oldunuz")
             elif a==2:
-                self.db.add_user_class(userid,2)
+                self.db.add_user(userid,text[1],2)
                 await member.add_roles(roles[1], reason="2. Sınıf Ogrencisi")
                 await member.send("Başarıyla kayıt oldunuz")
             elif a==3:
-                self.db.add_user_class(userid,3)
+                self.db.add_user(userid,text[1],3)
                 await member.add_roles(roles[2], reason="3. Sınıf Ogrencisi")
                 await member.send("Başarıyla kayıt oldunuz")
             elif a == 4:
-                self.db.add_user_class(userid,4)
+                self.db.add_user(userid,text[1],4)
                 await member.add_roles(roles[3], reason="4. Sınıf Ogrencisi")
                 await member.send("Başarıyla kayıt oldunuz")
             elif a == 0:
                 await member.add_roles(roles[4], reason="Hazırlık Ogrencisi")
-                self.db.add_user_class(userid,0)
+                self.db.add_user(userid,text[1],0)
                 await member.send("Başarıyla kayıt oldunuz")
             else:
                 await member.send("Hata 404")
@@ -416,15 +421,17 @@ class User(commands.Cog):
         view = View()
         view.add_item(select)
         kontrol="BILGISiYAR MUH."
-        #pytesseract.pytesseract.tesseract_cmd = r'C:\Users\Samet\AppData\Local\Tesseract-OCR\tesseract' #for windows
+        pytesseract.pytesseract.tesseract_cmd = r'C:\Users\Samet\AppData\Local\Tesseract-OCR\tesseract' #for windows
         #pytesseract.pytesseract.tesseract_cmd = r'/app/.apt/usr/bin/tesseract' #for heroku
-        pytesseract.pytesseract.tesseract_cmd = '/opt/homebrew/bin/tesseract'#for mac
-        # print(pytesseract.image_to_string(r'C:\Users\Samet\OneDrive\Masaüstü\dccc\cse-discord-bot\ogrenci_karti\ogrencibelge'+str(message.author)+'.png').split("\n"))
+        #pytesseract.pytesseract.tesseract_cmd = '/opt/homebrew/bin/tesseract'#for mac
+        #print(pytesseract.image_to_string(r'C:\Users\Samet\OneDrive\Masaüstü\dccc\cse-discord-bot\ogrenci_karti\ogrencibelge'+str(message.author)+'.png').split("\n"))
         # text = pytesseract.image_to_string(r'C:\Users\Samet\OneDrive\Masaüstü\dccc\cse-discord-bot\ogrenci_karti\ogrencibelge'+str(message.author)+'.png').split("\n")
         text = pytesseract.image_to_string('./ogrenci_karti/ogrencibelge_'+str(message.author)+'.png').split("\n")
         nn = ["KARTI", "KAYIT", "MUHENDISLIK"]
         okul_no = ""
         text = [x for x in text if x != '']
+        print(text)
+        
         for x in text:
             try:
                 if x.isdigit():

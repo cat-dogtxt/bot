@@ -52,7 +52,7 @@ class Models:
         print("Tables created")
     def add_user(self,user_id,name_surname,user_class):
         self.cursor.execute(f'''
-            INSERT INTO main(user_id,name_surname,user_class) VALUES(?,?)''',(user_id,name_surname,user_class))
+            INSERT INTO main(user_id,name_surname,user_class) VALUES(?,?,?)''',(user_id,name_surname,user_class))
         self.db.commit()
     
     # def add_user_class(self,user_id,user_class):

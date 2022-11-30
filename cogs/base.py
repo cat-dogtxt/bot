@@ -71,35 +71,29 @@ class Base(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_join(self,member):
-        result = self.db.get_user(member.id)
-        print(result)
+        result = self.db.get_user_class(member.id)
+        print(result[0])
         guild_id = 768189401213304892
         roles = ["1.sınıf","2.sınıf","3.sınıf","4.sınıf","hazırlık"]
         server = self.bot.get_guild(guild_id)
-        roles = [discord.utils.get(server.roles, name=language.lower()) for language in roles]
+        roles = [discord.utils.get(server.roles, name=language.upper()) for language in roles]
         if result is None:
             print(f"{member} has joined a server.")
             await member.send("Kayıt olmak için öğrenci belgenizi yollayınız!\n E-devlet üzerinden alacağınız öğrenci belgenizi buraya atarak veya düzgün bir şekilde çekilmiş öğrenci kartınızın fotoğrafını buraya atınız.")
         else:
-            result = self.db.get_user_class(member.id)
-            if(result==1):
-                self.db.add_user_class(member.id,1)
+            if(result[0]==1):
                 await member.add_roles(roles[0], reason="1. Sınıf Ogrencisi")
                 await member.send("Başariyla kayit oldunuz")
-            elif(result==2):
-                self.db.set_user_class(member.id,2)
+            elif(result[0]==2):
                 await member.add_roles(roles[1], reason="2. Sınıf Ogrencisi")
                 await member.send("Başariyla kayit oldunuz")
-            elif(result==3):
-                self.db.set_user_class(member.id,3)
+            elif(result[0]==3):
                 await member.add_roles(roles[2], reason="3. Sınıf Ogrencisi")
                 await member.send("Başariyla kayit oldunuz")
-            elif(result==4):
-                self.db.set_user_class(member.id,4)
+            elif(result[0]==4):
                 await member.add_roles(roles[3], reason="4. Sınıf Ogrencisi")
                 await member.send("Başariyla kayit oldunuz")
-            elif(result==0):
-                self.db.set_user_class(member.id,0)
+            elif(result[2]==0):
                 await member.add_roles(roles[4], reason="Hazırlık Ogrencisi")
                 await member.send("Başariyla kayit oldunuz")
     # @commands.Cog.listener()
