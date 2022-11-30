@@ -342,12 +342,8 @@ class User(commands.Cog):
                         await member.add_roles(roles[0], reason="1. Sınıf Ogrencisi")
                         await member.send("Başariyla kayit oldunuz")
                     elif any(sınıf2 in s for s in liste):
-                        print("aaa")
                         self.db.add_user(userid,name_surname,2)
-                        print("aaa")
-                        print(roles[1])
                         await member.add_roles(roles[1], reason="2. Sınıf Ogrencisi")
-                        print("aaa")
                         await member.send("Başarıyla kayıt oldunuz")
                     elif any(sınıf3 in s for s in liste):
                         self.db.add_user(userid,name_surname,3)
@@ -391,7 +387,6 @@ class User(commands.Cog):
             await interaction.response.edit_message(view=view)
             await interaction.followup.send(f"Selected {select.values}")
             a=int(select.values[0])
-            print(a)
             if a == 1:
                 print(text)
                 self.db.add_user(userid,text[1],1)

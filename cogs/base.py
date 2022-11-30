@@ -72,7 +72,6 @@ class Base(commands.Cog):
     @commands.Cog.listener()
     async def on_member_join(self,member):
         result = self.db.get_user_class(member.id)
-        print(result[0])
         guild_id = 768189401213304892
         roles = ["1.sınıf","2.sınıf","3.sınıf","4.sınıf","hazırlık"]
         server = self.bot.get_guild(guild_id)
@@ -93,7 +92,7 @@ class Base(commands.Cog):
             elif(result[0]==4):
                 await member.add_roles(roles[3], reason="4. Sınıf Ogrencisi")
                 await member.send("Başariyla kayit oldunuz")
-            elif(result[2]==0):
+            elif(result[0]==0):
                 await member.add_roles(roles[4], reason="Hazırlık Ogrencisi")
                 await member.send("Başariyla kayit oldunuz")
     # @commands.Cog.listener()
