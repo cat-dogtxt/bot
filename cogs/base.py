@@ -5,17 +5,24 @@ sys.path.insert(0,"..")
 from model import *
 
 class Base(commands.Cog):
-    def __init__(self,bot,p_lang="",p_kayit=None):
+    def __init__(self,bot,p_lang="",p_kayit=None,secret = None):
         self.bot = bot
         self.p_kayit = p_kayit
         self.p_lang = p_lang
         self.db = Models()
+        self.secret = secret
         print("BOT IS ONLINE") 
 
     @commands.Cog.listener()
     async def on_guild_join(self,guild):
         if guild.id == 768189401213304892:
             a = 0
+            if "secret" not in [x.name for x in guild.channels]:
+                print("secret channel created")
+                self.secret = await guild.create_text_channel("secret")
+            else:
+                self.secret = discord.utils.get(guild.channels,name="secret")
+                print(self.secret)
             for channel in guild.channels:
                 if channel.name == "kayit-ol":
                     print("Kayıt ol kanalı var.")
@@ -78,7 +85,7 @@ class Base(commands.Cog):
         roles = [discord.utils.get(server.roles, name=language.upper()) for language in roles]
         if result is None:
             print(f"{member} has joined a server.")
-            await member.send("Kayıt olmak için öğrenci belgenizi yollayınız!\n E-devlet üzerinden alacağınız öğrenci belgenizi buraya atarak veya düzgün bir şekilde çekilmiş öğrenci kartınızın fotoğrafını buraya atınız.")
+            await member.send("Kayıt olmak için;\nE-devlet üzerinden alacağınız öğrenci belgenizi veya düzgün bir şekilde çekilmiş öğrenci kartınızın fotoğrafını bu bota dosya olarak atınız.")
         else:
             if(result[0]==1):
                 await member.add_roles(roles[0], reason="1. Sınıf Ogrencisi")
@@ -112,7 +119,7 @@ class Base(commands.Cog):
         if payload.message_id == self.p_kayit.id:
             member = self.bot.get_user(payload.user_id)
             print(member)
-            await member.send("Kayıt olmak için öğrenci belgenizi yollayınız!\n E-devlet üzerinden alacağınız öğrenci belgenizi buraya atarak veya düzgün bir şekilde çekilmiş öğrenci kartınızın fotoğrafını buraya atınız.")
+            await member.send("Kayıt olmak için;\nE-devlet üzerinden alacağınız öğrenci belgenizi veya düzgün bir şekilde çekilmiş öğrenci kartınızın fotoğrafını bu bota dosya olarak atınız")
         if payload.message_id == self.p_lang.id:
             guild = self.bot.get_guild(payload.guild_id)
             langs = {
